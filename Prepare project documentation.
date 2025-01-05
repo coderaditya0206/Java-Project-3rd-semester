@@ -1,0 +1,187 @@
+Ambulance Booking System - Project Documentation
+
+1.1 Project Overview
+The Ambulance Booking System is a web-based application designed to allow users to book ambulances 
+for emergency or non-emergency medical transportation. This system provides users with a platform
+to book ambulances based on their needs, manage their profiles, and track their bookings. The system 
+integrates Java Servlets, JSP, JSTL, EL, and JUnit to ensure a seamless user experience, efficient data management,
+and reliable testing.
+
+
+1.2 Objective
+The objective of this project is to develop a web-based application where users can easily book ambulances,
+view and manage their bookings, and update their profiles. The system is intended to improve the ambulance 
+booking process and ensure that users can receive timely medical assistance.
+
+
+1.3 Scope
+The system includes the following features:
+
+User Registration and Login
+Ambulance Booking
+Booking Management
+User Profile Management
+Booking Confirmation
+Admin Functionality (optional)
+Testing and Quality Assurance (using JUnit and Mockito)
+
+
+2. System Requirements
+2.1 Functional Requirements
+1-User Registration: Users must be able to create accounts and log in.
+2-Ambulance Booking: Users can book an ambulance by selecting their location, time, and ambulance type (basic or advanced).
+3-Booking Confirmation: Once the booking is successful, users will receive a booking confirmation.
+4-Booking Management: Users can view and manage their bookings.
+5-User Profile Management: Users can view and update their personal information.
+6-Admin Features: Admin can view, cancel, or manage bookings.
+
+
+2.2 Non-Functional Requirements
+1-Security: The system must ensure secure user authentication and data protection.
+2-Scalability: The system should be able to handle an increasing number of users and bookings.
+3-Performance: The system should respond to user requests efficiently.
+4-Usability: The system should have a user-friendly interface.
+
+
+
+
+3. System Architecture
+3.1 Architecture Overview
+The Ambulance Booking System follows the Model-View-Controller (MVC) architecture, which separates the application into three components:
+
+Model: This layer handles the data and business logic. It includes JavaBeans (e.g., Booking and User), as well as service classes (e.g., BookingService).
+
+View: The view is implemented using JSP pages that display data and allow users to interact with the system.
+JSTL and EL are used for dynamic content rendering.
+
+Controller: The controller consists of Java Servlets that handle HTTP requests and serve as intermediaries between the model and view layers.
+
+
+
+3.2 Components
+BookingService: Contains business logic related to booking an ambulance, including validation and interaction with the DAO layer.
+BookingDAO: Handles database interactions related to booking records.
+UserDAO: Handles database interactions for user profiles.
+JSP Pages: Front-end user interface pages that display the user data, forms, and confirmation messages.
+Servlets: Controllers that handle HTTP requests, invoke service methods, and forward data to JSP pages.
+
+
+
+
+4. Technologies Used
+4.1 Back-End Technologies
+Java Servlets: Used to handle HTTP requests, business logic, and database interaction.
+JSP (JavaServer Pages): Used for creating dynamic web pages by embedding Java code in HTML.
+JSTL (JavaServer Pages Standard Tag Library): Provides a set of tags to simplify access to logic and data within JSP pages.
+EL (Expression Language): Used in JSP for easy access to data from beans or request attributes.
+JUnit: Used for writing unit tests to ensure that each component works correctly.
+Mockito: Used for mocking external dependencies in unit tests (e.g., database interactions).
+H2 Database: An in-memory database used for unit testing the DAO layer without requiring an actual database server.
+
+4.2 Front-End Technologies
+HTML: Used to structure the web pages.
+CSS: Used to style the web pages and ensure a user-friendly interface.
+JavaScript: Used for client-side validation and dynamic behavior of the user interface.
+
+
+5. System Design
+5.1 Database Schema
+The system uses a relational database to store data. Below is an example schema for the core entities involved in the system.
+
+Users Table:
+Column	Data Type	Description
+id	INT	Primary key, auto-increment
+name	VARCHAR	Name of the user
+email	VARCHAR	Email address (unique)
+phone	VARCHAR	Contact number
+address	VARCHAR	User's address
+password	VARCHAR	Hashed password
+Bookings Table:
+Column	Data Type	Description
+id	INT	Primary key, auto-increment
+user_id	INT	Foreign key referencing Users
+ambulance_type	VARCHAR	Type of ambulance (Basic/Advanced)
+time	VARCHAR	Booking time
+address	VARCHAR	Pickup address
+
+
+5.2 Application Flow
+User Registration:
+
+Users create accounts by entering their name, email, phone number, and password.
+The system validates the input and stores it in the database.
+Ambulance Booking:
+
+After logging in, users can choose to book an ambulance by entering the details (ambulance type, address, time).
+The system validates the input and stores the booking information in the database.
+Profile Management:
+
+Users can update their profile information, including name, email, phone, and address.
+Booking Confirmation:
+
+Upon successful booking, users receive a confirmation page displaying the details of their booking.
+
+
+6. Implementation Details
+6.1 Service Layer
+The service layer encapsulates the business logic for booking an ambulance. It interacts with the BookingDAO and UserDAO to retrieve or store data in the database. For example, the BookingService handles tasks such as:
+
+Validating user input.
+Checking if the booking time is available.
+Communicating with the database to save the booking.
+
+
+6.2 DAO Layer
+The DAO layer is responsible for interacting with the database. It uses JDBC to execute SQL queries and return results. The BookingDAO handles CRUD operations for bookings, while the UserDAO handles user data operations.
+
+6.3 Servlet Layer
+Servlets act as controllers, handling requests from the client, invoking the service layer, and forwarding data to the appropriate JSP pages. For example:
+
+The BookingServlet handles booking requests, invokes BookingService, and forwards booking data to the JSP page.
+6.4 JSP Pages
+JSP pages render dynamic HTML content and display user data. The JSTL and EL tags are used to simplify the process of embedding dynamic data into HTML. For example:
+
+The booking.jsp page displays the booking form.
+The confirmation.jsp page shows booking details upon success.
+
+
+7. Testing and Quality Assurance
+7.1 Unit Testing
+Unit tests are written to validate the business logic and data access logic. JUnit is used for writing test cases, and Mockito is used to mock external dependencies such as database interactions.
+
+7.2 Test Coverage
+BookingServiceTest: Tests the business logic of booking an ambulance.
+BookingDAOTest: Tests database interactions using an in-memory H2 database.
+
+
+8. Security Considerations
+8.1 Authentication and Authorization
+Password Storage: Passwords are hashed and stored securely to prevent unauthorized access.
+Session Management: User sessions are managed securely to prevent session hijacking.
+
+
+8.2 Data Validation
+Input Validation: Input fields are validated on both the client-side (JavaScript) and 
+server-side (Servlets) to prevent SQL injection and cross-site scripting (XSS).
+Secure Communication: SSL/TLS is used to encrypt data transmitted between the client and server.
+
+
+9. Future Enhancements
+Admin Dashboard: Implement an admin panel to manage user accounts and bookings.
+Real-Time Ambulance Tracking: Add functionality to track ambulances in real-time.
+Payment Gateway Integration: Integrate a payment system for booking payments.
+Multi-Language Support: Implement support for multiple languages to cater to a wider audience.
+
+
+10. Conclusion
+The Ambulance Booking System is a well-structured and scalable web 
+application that fulfills the core requirements of booking ambulances, managing user
+profiles, and handling bookings efficiently. With robust business logic, a secure architecture, 
+and effective use of Java technologies such as Servlets, JSP, JSTL, and JUnit, this project serves 
+as a solid foundation for a real-world ambulance booking system. Future enhancements, such as real-time 
+tracking and payment integration, could significantly improve the functionality and usability of the system.
+
+
+
+
+

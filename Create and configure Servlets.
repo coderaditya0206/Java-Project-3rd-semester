@@ -1,0 +1,288 @@
+To create and configure Servlets for an Ambulance Booking System in Java, follow these steps. 
+The system will involve typical functionalities such as booking, viewing, and managing ambulance requests.
+Here is a breakdown of how to set up and configure Servlets in the project:
+
+1. Set Up Your Development Environment
+Before we dive into the servlet code, make sure you have the following prerequisites:
+
+(i)-Java Development Kit (JDK): Install the latest version of JDK.
+(ii)-Apache Tomcat: Install Tomcat to run the Servlets.
+(iii)-IDE (Integrated Development Environment): Use an IDE like Eclipse or IntelliJ IDEA, which supports Java EE development.
+(iv)-Servlet API: Make sure the servlet-api.jar is included in your project.
+
+2. Directory Structure
+Here’s a simple structure for your ambulance booking project:
+
+AmbulanceBookingSystem
+│
+├── src/
+│   ├── com/
+│       ├── ambulance/
+│           ├── servlet/
+│           │   ├── BookingServlet.java
+│           │   ├── ViewBookingServlet.java
+│           │   └── CancelBookingServlet.java
+│
+├── WebContent/
+│   ├── WEB-INF/
+│   │   ├── web.xml
+│   │
+│   ├── index.jsp
+│   ├── bookingForm.jsp
+│   └── viewBooking.jsp
+└── lib/
+
+
+3. Define Servlets for Ambulance Booking
+Let’s break down the Servlets you will need:
+
+a. BookingServlet.java (Handles ambulance booking)
+This servlet handles the form submission for booking an ambulance.
+
+package com.ambulance.servlet;
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.util.List;
+
+public class BookingServlet extends HttpServlet {
+    
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Retrieve form data
+        String patientName = request.getParameter("patientName");
+        String patientPhone = request.getParameter("patientPhone");
+        String pickupLocation = request.getParameter("pickupLocation");
+        String destination = request.getParameter("destination");
+        
+        // Save this booking in the database (or in memory for simplicity)
+        // In a real-world case, you would save it to a database.
+        
+        Booking booking = new Booking(patientName, patientPhone, pickupLocation, destination);
+        // Store the booking in a list (example with a static list)
+        BookingService.addBooking(booking);
+
+        // Redirect to a success page or the booking confirmation page
+        response.sendRedirect("viewBooking.jsp?bookingId=" + booking.getBookingId());
+    }
+}
+
+
+b. ViewBookingServlet.java (Displays the booking details)
+This servlet retrieves booking details based on a booking ID.
+
+package com.ambulance.servlet;
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public class ViewBookingServlet extends HttpServlet {
+    
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Retrieve booking ID from the request
+        String bookingId = request.getParameter("bookingId");
+
+        // Retrieve the booking details from the service/database (stubbed here)
+        Booking booking = BookingService.getBookingById(bookingId);
+
+        if (booking != null) {
+            // Set booking details as attributes for the JSP to display
+            request.setAttribute("booking", booking);
+            RequestDispatcher dispatcher = request.getRequestDispatcher("viewBooking.jsp");
+            dispatcher.forward(request, response);
+        } else {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Booking not found.");
+        }
+    }
+}
+
+
+c. CancelBookingServlet.java (Cancel a booking)
+This servlet handles the cancellation of a booking.
+
+package com.ambulance.servlet;
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public class CancelBookingServlet extends HttpServlet {
+    
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String bookingId = request.getParameter("bookingId");
+
+        // Cancel the booking (In real world, remove from the database)
+        boolean success = BookingService.cancelBooking(bookingId);
+
+        if (success) {
+            response.sendRedirect("index.jsp");
+        } else {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unable to cancel the booking.");
+        }
+    }
+}
+
+
+4. Booking Service (BookingService.java)
+You would typically create a service layer to handle the business logic, such as storing and retrieving bookings. Here’s an example with an in-memory list:
+
+package com.ambulance.servlet;
+
+import java.util.*;
+
+public class BookingService {
+
+    private static List<Booking> bookings = new ArrayList<>();
+    private static int bookingCounter = 1;
+
+    // Add a new booking
+    public static void addBooking(Booking booking) {
+        booking.setBookingId(String.valueOf(bookingCounter++));
+        bookings.add(booking);
+    }
+
+    // Get a booking by ID
+    public static Booking getBookingById(String bookingId) {
+        for (Booking booking : bookings) {
+            if (booking.getBookingId().equals(bookingId)) {
+                return booking;
+            }
+        }
+        return null;
+    }
+
+    // Cancel a booking
+    public static boolean cancelBooking(String bookingId) {
+        Booking booking = getBookingById(bookingId);
+        if (booking != null) {
+            bookings.remove(booking);
+            return true;
+        }
+        return false;
+    }
+}
+
+
+5. Booking Model (Booking.java)
+This is the Java class that models a booking. It contains the properties and their getters and setters.
+
+package com.ambulance.servlet;
+
+public class Booking {
+    
+    private String bookingId;
+    private String patientName;
+    private String patientPhone;
+    private String pickupLocation;
+    private String destination;
+
+    public Booking(String patientName, String patientPhone, String pickupLocation, String destination) {
+        this.patientName = patientName;
+        this.patientPhone = patientPhone;
+        this.pickupLocation = pickupLocation;
+        this.destination = destination;
+    }
+
+    public String getBookingId() {
+        return bookingId;
+    }
+
+    public void setBookingId(String bookingId) {
+        this.bookingId = bookingId;
+    }
+
+    // Getters and setters for other fields
+    public String getPatientName() {
+        return patientName;
+    }
+
+    public void setPatientName(String patientName) {
+        this.patientName = patientName;
+    }
+
+    public String getPatientPhone() {
+        return patientPhone;
+    }
+
+    public void setPatientPhone(String patientPhone) {
+        this.patientPhone = patientPhone;
+    }
+
+    public String getPickupLocation() {
+        return pickupLocation;
+    }
+
+    public void setPickupLocation(String pickupLocation) {
+        this.pickupLocation = pickupLocation;
+    }
+
+    public String getDestination() {
+        return destination;
+    }
+
+    public void setDestination(String destination) {
+        this.destination = destination;
+    }
+}
+
+
+6. Configure Servlet Mappings in web.xml
+In the web.xml file, define the mappings for the servlets.
+
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
+                             http://java.sun.com/xml/ns/javaee/web-app_3_1.xsd" 
+         version="3.1">
+    
+    <servlet>
+        <servlet-name>BookingServlet</servlet-name>
+        <servlet-class>com.ambulance.servlet.BookingServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>BookingServlet</servlet-name>
+        <url-pattern>/booking</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ViewBookingServlet</servlet-name>
+        <servlet-class>com.ambulance.servlet.ViewBookingServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ViewBookingServlet</servlet-name>
+        <url-pattern>/viewBooking</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>CancelBookingServlet</servlet-name>
+        <servlet-class>com.ambulance.servlet.CancelBookingServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>CancelBookingServlet</servlet-name>
+        <url-pattern>/cancelBooking</url-pattern>
+    </servlet-mapping>
+    
+</web-app>
+
+
+7. JSP Pages
+index.jsp: Home page with an option to book an ambulance.
+bookingForm.jsp: The form where users will enter booking details.
+viewBooking.jsp: Displays booking details after it’s confirmed.
+
+
+8. Testing Your Application
+Start Apache Tomcat server.
+Deploy your project.
+Access the application through your browser (e.g., http://localhost:8080/AmbulanceBookingSystem/).
+You should now have a basic ambulance booking system with the ability to:
+
+Book an ambulance
+View booking details
+Cancel bookings
+This structure gives you the foundation for more advanced features such as user authentication, email notifications, or connecting to an actual database.
+
+
+
+

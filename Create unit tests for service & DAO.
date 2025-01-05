@@ -1,0 +1,334 @@
+To create unit tests for the service and DAO layers of the Ambulance Booking System using Java,
+we can use JUnit and Mockito. JUnit will allow us to write unit tests, while Mockito will help
+us mock dependencies like databases or external services.
+
+1-Unit Test for Service Layer:
+
+The service layer is responsible for business logic, so we’ll test if the business logic in the service methods behaves correctly.
+We will mock the DAO layer to isolate the service logic and focus on testing it.
+
+2-Unit Test for DAO Layer:
+
+The DAO layer interacts with the database, so we’ll test if the data access logic works correctly.
+We'll mock the database using an in-memory database like H2 or use Mockito to simulate database operations.
+
+1. Service Layer Unit Tests
+We’ll write a unit test for a service method that books an ambulance. Let’s assume we have a BookingService class that interacts with the BookingDAO class to book an ambulance.
+
+BookingService.java
+package com.service;
+
+import com.dao.BookingDAO;
+import com.model.Booking;
+
+public class BookingService {
+
+    private BookingDAO bookingDAO;
+
+    public BookingService(BookingDAO bookingDAO) {
+        this.bookingDAO = bookingDAO;
+    }
+
+    public boolean bookAmbulance(Booking booking) {
+        if (booking == null) {
+            throw new IllegalArgumentException("Booking cannot be null");
+        }
+        // Business logic: validate booking, check availability, etc.
+        return bookingDAO.saveBooking(booking);
+    }
+}
+
+BookingServiceTest.java
+Now, let's write the unit test for the BookingService using JUnit and Mockito to mock the BookingDAO.
+
+package com.service;
+
+import com.dao.BookingDAO;
+import com.model.Booking;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class BookingServiceTest {
+
+    private BookingDAO bookingDAO;
+    private BookingService bookingService;
+
+    @BeforeEach
+    public void setUp() {
+        // Mocking the DAO
+        bookingDAO = Mockito.mock(BookingDAO.class);
+        // Creating the service with the mocked DAO
+        bookingService = new BookingService(bookingDAO);
+    }
+
+    @Test
+    public void testBookAmbulanceSuccess() {
+        // Creating a mock booking object
+        Booking booking = new Booking("John Doe", "1234567890", "123 Main St", "Basic", "2025-01-05 10:00");
+
+        // Mocking the DAO's saveBooking method to return true
+        Mockito.when(bookingDAO.saveBooking(booking)).thenReturn(true);
+
+        // Calling the service method and checking if it returns true (booking successful)
+        boolean result = bookingService.bookAmbulance(booking);
+        assertTrue(result);
+    }
+
+    @Test
+    public void testBookAmbulanceFailure() {
+        // Creating a mock booking object
+        Booking booking = new Booking("John Doe", "1234567890", "123 Main St", "Basic", "2025-01-05 10:00");
+
+        // Mocking the DAO's saveBooking method to return false (booking failed)
+        Mockito.when(bookingDAO.saveBooking(booking)).thenReturn(false);
+
+        // Calling the service method and checking if it returns false (booking failed)
+        boolean result = bookingService.bookAmbulance(booking);
+        assertFalse(result);
+    }
+
+    @Test
+    public void testBookAmbulanceNullBooking() {
+        // Testing that an exception is thrown if the booking is null
+        assertThrows(IllegalArgumentException.class, () -> bookingService.bookAmbulance(null));
+    }
+}
+
+
+To create unit tests for the service and DAO layers of the Ambulance Booking System using Java, we can use JUnit and Mockito. JUnit will allow us to write unit tests, while Mockito will help us mock dependencies like databases or external services.
+
+Here’s how we can approach it:
+
+Unit Test for Service Layer:
+
+The service layer is responsible for business logic, so we’ll test if the business logic in the service methods behaves correctly.
+We will mock the DAO layer to isolate the service logic and focus on testing it.
+Unit Test for DAO Layer:
+
+The DAO layer interacts with the database, so we’ll test if the data access logic works correctly.
+We'll mock the database using an in-memory database like H2 or use Mockito to simulate database operations.
+Let’s start by creating unit tests for both layers:
+
+1. Service Layer Unit Tests
+We’ll write a unit test for a service method that books an ambulance. Let’s assume we have a BookingService class that interacts with the BookingDAO class to book an ambulance.
+
+BookingService.java
+java
+Copy code
+package com.service;
+
+import com.dao.BookingDAO;
+import com.model.Booking;
+
+public class BookingService {
+
+    private BookingDAO bookingDAO;
+
+    public BookingService(BookingDAO bookingDAO) {
+        this.bookingDAO = bookingDAO;
+    }
+
+    public boolean bookAmbulance(Booking booking) {
+        if (booking == null) {
+            throw new IllegalArgumentException("Booking cannot be null");
+        }
+        // Business logic: validate booking, check availability, etc.
+        return bookingDAO.saveBooking(booking);
+    }
+}
+BookingServiceTest.java
+Now, let's write the unit test for the BookingService using JUnit and Mockito to mock the BookingDAO.
+
+java
+Copy code
+package com.service;
+
+import com.dao.BookingDAO;
+import com.model.Booking;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class BookingServiceTest {
+
+    private BookingDAO bookingDAO;
+    private BookingService bookingService;
+
+    @BeforeEach
+    public void setUp() {
+        // Mocking the DAO
+        bookingDAO = Mockito.mock(BookingDAO.class);
+        // Creating the service with the mocked DAO
+        bookingService = new BookingService(bookingDAO);
+    }
+
+    @Test
+    public void testBookAmbulanceSuccess() {
+        // Creating a mock booking object
+        Booking booking = new Booking("John Doe", "1234567890", "123 Main St", "Basic", "2025-01-05 10:00");
+
+        // Mocking the DAO's saveBooking method to return true
+        Mockito.when(bookingDAO.saveBooking(booking)).thenReturn(true);
+
+        // Calling the service method and checking if it returns true (booking successful)
+        boolean result = bookingService.bookAmbulance(booking);
+        assertTrue(result);
+    }
+
+    @Test
+    public void testBookAmbulanceFailure() {
+        // Creating a mock booking object
+        Booking booking = new Booking("John Doe", "1234567890", "123 Main St", "Basic", "2025-01-05 10:00");
+
+        // Mocking the DAO's saveBooking method to return false (booking failed)
+        Mockito.when(bookingDAO.saveBooking(booking)).thenReturn(false);
+
+        // Calling the service method and checking if it returns false (booking failed)
+        boolean result = bookingService.bookAmbulance(booking);
+        assertFalse(result);
+    }
+
+    @Test
+    public void testBookAmbulanceNullBooking() {
+        // Testing that an exception is thrown if the booking is null
+        assertThrows(IllegalArgumentException.class, () -> bookingService.bookAmbulance(null));
+    }
+}
+Explanation:
+Mockito is used to mock the BookingDAO class so that we can isolate the BookingService logic.
+JUnit is used for creating unit test cases.
+We are testing the following:
+1-A successful booking (testBookAmbulanceSuccess).
+2-A failed booking (testBookAmbulanceFailure).
+3-The scenario when a null booking is passed (testBookAmbulanceNullBooking).
+2. DAO Layer Unit Tests
+Now let’s write unit tests for the BookingDAO layer. We will use H2 in-memory database for testing, so we don't need an actual database for unit tests.
+
+BookingDAO.java
+The BookingDAO class interacts with the database. Here's a simple BookingDAO class:
+package com.dao;
+
+import com.model.Booking;
+
+import java.sql.*;
+
+public class BookingDAO {
+
+    private Connection connection;
+
+    public BookingDAO(Connection connection) {
+        this.connection = connection;
+    }
+
+    public boolean saveBooking(Booking booking) {
+        try {
+            String sql = "INSERT INTO bookings (name, phone, address, ambulance_type, time) VALUES (?, ?, ?, ?, ?)";
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setString(1, booking.getName());
+            statement.setString(2, booking.getPhone());
+            statement.setString(3, booking.getAddress());
+            statement.setString(4, booking.getAmbulanceType());
+            statement.setString(5, booking.getTime());
+            int rowsInserted = statement.executeUpdate();
+            return rowsInserted > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+}
+
+BookingDAOTest.java
+Here, we use JUnit and H2 (an in-memory database) to test the BookingDAO.
+package com.dao;
+
+import com.model.Booking;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class BookingDAOTest {
+
+    private Connection connection;
+    private BookingDAO bookingDAO;
+
+    @BeforeEach
+    public void setUp() throws SQLException {
+        // Setting up an in-memory H2 database
+        connection = DriverManager.getConnection("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1", "sa", "");
+        // Creating the table for testing
+        connection.createStatement().execute("CREATE TABLE bookings (id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(255), phone VARCHAR(255), address VARCHAR(255), ambulance_type VARCHAR(255), time VARCHAR(255))");
+
+        bookingDAO = new BookingDAO(connection);
+    }
+
+    @Test
+    public void testSaveBookingSuccess() {
+        // Create a booking object
+        Booking booking = new Booking("John Doe", "1234567890", "123 Main St", "Basic", "2025-01-05 10:00");
+
+        // Test saving the booking
+        boolean result = bookingDAO.saveBooking(booking);
+        assertTrue(result);
+
+        // Verify the booking was inserted
+        try {
+            var resultSet = connection.createStatement().executeQuery("SELECT COUNT(*) FROM bookings");
+            resultSet.next();
+            assertEquals(1, resultSet.getInt(1));
+        } catch (SQLException e) {
+            fail("Database query failed");
+        }
+    }
+
+    @Test
+    public void testSaveBookingFailure() {
+        // Simulate a database failure (closing the connection)
+        try {
+            connection.close();
+            Booking booking = new Booking("John Doe", "1234567890", "123 Main St", "Basic", "2025-01-05 10:00");
+
+            boolean result = bookingDAO.saveBooking(booking);
+            assertFalse(result);
+        } catch (SQLException e) {
+            fail("Database connection closed unexpectedly");
+        }
+    }
+}
+
+Explanation:
+H2 Database is used as an in-memory database for testing. It’s lightweight and doesn’t require an actual database server.
+JUnit is used to write the test cases.
+BookingDAO tests:
+1-A test to save a booking successfully (testSaveBookingSuccess).
+2-A test to simulate a database failure (testSaveBookingFailure).
+3. Running the Tests
+To run the tests:
+
+Make sure JUnit and Mockito dependencies are included in your project (pom.xml for Maven or build.gradle for Gradle).
+Use your IDE (e.g., IntelliJ IDEA, Eclipse) or run tests using the Maven/Gradle command line (mvn test or gradle test).
+
+
+
+Conclusion
+These unit tests ensure that:
+
+The BookingService correctly handles business logic and interacts with the DAO.
+The BookingDAO properly interacts with the database and handles saving bookings.
+Mocking and in-memory databases allow you to isolate and test the logic without 
+depending on an actual database.
+By writing unit tests for the service and DAO layers, you ensure that each part of the system works correctly in isolation, leading to more reliable and maintainable code.
+
+
+
+

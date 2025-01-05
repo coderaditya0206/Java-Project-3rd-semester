@@ -1,0 +1,234 @@
+To implement the doGet and doPost methods for an Ambulance Booking System using Java, we will extend the servlet functionality for two specific HTTP request types:
+
+doGet: This method is typically used for fetching or retrieving data from the server.
+doPost: This method is used for handling data submission to the server.
+
+
+We will implement these methods for the BookingServlet, ViewBookingServlet, and CancelBookingServlet.
+
+1. BookingServlet - Handling the Booking Form
+doGet Method:
+In the doGet method, we may want to display the booking form to the user.
+
+package com.ambulance.servlet;
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public class BookingServlet extends HttpServlet {
+
+    // Display booking form on GET request
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Forward the request to the bookingForm.jsp
+        RequestDispatcher dispatcher = request.getRequestDispatcher("bookingForm.jsp");
+        dispatcher.forward(request, response);
+    }
+
+    // Handle form submission on POST request
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Retrieve form data (booking information)
+        String patientName = request.getParameter("patientName");
+        String patientPhone = request.getParameter("patientPhone");
+        String pickupLocation = request.getParameter("pickupLocation");
+        String destination = request.getParameter("destination");
+
+        // Create a booking object (for simplicity, we'll store it in memory)
+        Booking booking = new Booking(patientName, patientPhone, pickupLocation, destination);
+        BookingService.addBooking(booking);  // Add to the "database" (in-memory list)
+
+        // Redirect to the viewBooking page with the booking ID
+        response.sendRedirect("viewBooking.jsp?bookingId=" + booking.getBookingId());
+    }
+}
+
+
+2. ViewBookingServlet - Handling View Requests for Bookings
+doGet Method:
+In the doGet method of ViewBookingServlet, we retrieve the booking details based on the booking ID passed in the query parameters.
+
+package com.ambulance.servlet;
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public class ViewBookingServlet extends HttpServlet {
+
+    // Retrieve and display booking details on GET request
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Retrieve the bookingId from the request parameter
+        String bookingId = request.getParameter("bookingId");
+
+        // Fetch booking details from the "database" (service layer)
+        Booking booking = BookingService.getBookingById(bookingId);
+
+        if (booking != null) {
+            // If booking exists, forward the data to the viewBooking.jsp
+            request.setAttribute("booking", booking);
+            RequestDispatcher dispatcher = request.getRequestDispatcher("viewBooking.jsp");
+            dispatcher.forward(request, response);
+        } else {
+            // If booking doesn't exist, send a 404 error
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Booking not found.");
+        }
+    }
+
+    // Handle POST request, in this case, we can use it to manage other functionalities (optional)
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Can be used to implement actions like updating the booking, but we are leaving it empty for now
+    }
+}
+
+
+3. CancelBookingServlet - Handling Booking Cancellations
+doGet Method:
+The doGet method for CancelBookingServlet could be used to display a confirmation page before canceling the booking (though in this case, it's just a direct deletion).
+
+doPost Method:
+In the doPost method, we retrieve the booking ID from the request and cancel the booking.
+
+package com.ambulance.servlet;
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public class CancelBookingServlet extends HttpServlet {
+
+    // Cancel booking (usually this would be done via POST request)
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Retrieve bookingId from the request
+        String bookingId = request.getParameter("bookingId");
+
+        // Call service to cancel the booking
+        boolean success = BookingService.cancelBooking(bookingId);
+
+        if (success) {
+            // Redirect to the home page or a success message page
+            response.sendRedirect("index.jsp");
+        } else {
+            // If cancellation fails, send an error
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unable to cancel the booking.");
+        }
+    }
+}
+
+
+Servlet Flow Summary
+BookingServlet:
+
+doGet: Displays the booking form (bookingForm.jsp).
+doPost: Handles form submission (creates a booking and redirects to the view page).
+ViewBookingServlet:
+
+doGet: Retrieves booking details based on the booking ID and displays them in the viewBooking.jsp.
+doPost: Can be used to manage any modifications to the booking (optional).
+CancelBookingServlet:
+
+doPost: Cancels a booking based on the provided booking ID and redirects to the home page or shows an error if cancellation fails.
+
+4. Example JSP Pages
+Here is a simple example of what the JSP pages might look like:
+
+bookingForm.jsp (Booking Form)
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ambulance Booking</title>
+</head>
+<body>
+    <h2>Book an Ambulance</h2>
+    <form action="booking" method="POST">
+        <label>Patient Name:</label><br>
+        <input type="text" name="patientName" required><br><br>
+
+        <label>Patient Phone:</label><br>
+        <input type="text" name="patientPhone" required><br><br>
+
+        <label>Pickup Location:</label><br>
+        <input type="text" name="pickupLocation" required><br><br>
+
+        <label>Destination:</label><br>
+        <input type="text" name="destination" required><br><br>
+
+        <button type="submit">Book Ambulance</button>
+    </form>
+</body>
+</html>
+
+viewBooking.jsp (Booking Details)
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View Booking</title>
+</head>
+<body>
+    <h2>Booking Details</h2>
+    <p><strong>Booking ID:</strong> ${booking.bookingId}</p>
+    <p><strong>Patient Name:</strong> ${booking.patientName}</p>
+    <p><strong>Patient Phone:</strong> ${booking.patientPhone}</p>
+    <p><strong>Pickup Location:</strong> ${booking.pickupLocation}</p>
+    <p><strong>Destination:</strong> ${booking.destination}</p>
+
+    <form action="cancelBooking" method="POST">
+        <input type="hidden" name="bookingId" value="${booking.bookingId}">
+        <button type="submit">Cancel Booking</button>
+    </form>
+</body>
+</html>
+
+5. web.xml Configuration
+Make sure to map the servlets in your web.xml for the doGet and doPost methods to work:
+
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
+                             http://java.sun.com/xml/ns/javaee/web-app_3_1.xsd"
+         version="3.1">
+
+    <!-- Booking Servlet -->
+    <servlet>
+        <servlet-name>BookingServlet</servlet-name>
+        <servlet-class>com.ambulance.servlet.BookingServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>BookingServlet</servlet-name>
+        <url-pattern>/booking</url-pattern>
+    </servlet-mapping>
+
+    <!-- View Booking Servlet -->
+    <servlet>
+        <servlet-name>ViewBookingServlet</servlet-name>
+        <servlet-class>com.ambulance.servlet.ViewBookingServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ViewBookingServlet</servlet-name>
+        <url-pattern>/viewBooking</url-pattern>
+    </servlet-mapping>
+
+    <!-- Cancel Booking Servlet -->
+    <servlet>
+        <servlet-name>CancelBookingServlet</servlet-name>
+        <servlet-class>com.ambulance.servlet.CancelBookingServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>CancelBookingServlet</servlet-name>
+        <url-pattern>/cancelBooking</url-pattern>
+    </servlet-mapping>
+
+</web-app>
+
+
+Conclusion
+You now have a basic implementation of the doGet and doPost methods for the Ambulance Booking System. 
+The doGet method handles data retrieval (e.g., displaying forms and booking details), while the doPost
+method handles data submission (e.g., creating bookings and canceling them). You can extend this further 
+to include database interactions, validation, and additional features.
+
+
+
+
+
+

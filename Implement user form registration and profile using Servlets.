@@ -1,0 +1,353 @@
+To implement user registration and profile functionality using Java Servlets, we'll need to create a user registration form, store user data (such as username, email, password), and then allow users to view and update their profiles.
+
+We'll break this implementation down into the following components:
+
+1-User Registration (UserServlet)
+2-User Profile Display (ProfileServlet)
+3-User Profile Update (UpdateProfileServlet)
+4-JSP Pages for User Registration and Profile Management
+
+1. Directory Structure
+The structure of the project will look like this:
+UserProfileSystem
+│
+├── src/
+│   ├── com/
+│       ├── users/
+│           ├── servlet/
+│           │   ├── UserServlet.java
+│           │   ├── ProfileServlet.java
+│           │   └── UpdateProfileServlet.java
+│
+├── WebContent/
+│   ├── WEB-INF/
+│   │   ├── web.xml
+│   │
+│   ├── index.jsp
+│   ├── registrationForm.jsp
+│   ├── profile.jsp
+│   └── updateProfile.jsp
+└── lib/
+
+2. User Model (User.java)
+This class represents the user and stores their information like username, password, and email.
+package com.users.servlet;
+
+public class User {
+    private String username;
+    private String email;
+    private String password;
+
+    // Constructor
+    public User(String username, String email, String password) {
+        this.username = username;
+        this.email = email;
+        this.password = password;
+    }
+
+    // Getters and Setters
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+}
+
+3. User Service (UserService.java)
+This service class will simulate storing user data in memory for this example (in a real application, you'd interact with a database).
+package com.users.servlet;
+
+import java.util.*;
+
+public class UserService {
+    // A simple in-memory user database (in real world, use a database)
+    private static Map<String, User> users = new HashMap<>();
+
+    // Register a user
+    public static boolean registerUser(User user) {
+        if (users.containsKey(user.getUsername())) {
+            return false; // User already exists
+        }
+        users.put(user.getUsername(), user);
+        return true;
+    }
+
+    // Get user by username
+    public static User getUserByUsername(String username) {
+        return users.get(username);
+    }
+
+    // Update user profile (email, password)
+    public static boolean updateUser(User user) {
+        if (users.containsKey(user.getUsername())) {
+            users.put(user.getUsername(), user);
+            return true;
+        }
+        return false;
+    }
+}
+
+4. Servlets
+UserServlet (Handles Registration)
+The UserServlet will process the form data from the user registration page.
+package com.users.servlet;
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public class UserServlet extends HttpServlet {
+
+    // Handle the GET request to show the registration form
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Forward to the registration form (JSP)
+        RequestDispatcher dispatcher = request.getRequestDispatcher("registrationForm.jsp");
+        dispatcher.forward(request, response);
+    }
+
+    // Handle the POST request to process the registration form
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Retrieve form parameters
+        String username = request.getParameter("username");
+        String email = request.getParameter("email");
+        String password = request.getParameter("password");
+
+        // Create a user object
+        User user = new User(username, email, password);
+
+        // Try to register the user using the UserService
+        boolean registrationSuccess = UserService.registerUser(user);
+
+        // If registration is successful, redirect to the profile page
+        if (registrationSuccess) {
+            response.sendRedirect("profile.jsp?username=" + username);
+        } else {
+            // If registration failed, show an error message
+            request.setAttribute("errorMessage", "Username already taken!");
+            RequestDispatcher dispatcher = request.getRequestDispatcher("registrationForm.jsp");
+            dispatcher.forward(request, response);
+        }
+    }
+}
+
+ProfileServlet (Displays the User's Profile)
+The ProfileServlet will display the user profile when the user logs in or registers.
+
+package com.users.servlet;
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public class ProfileServlet extends HttpServlet {
+
+    // Handle GET request to display user profile
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String username = request.getParameter("username");
+
+        // Retrieve user details from the UserService
+        User user = UserService.getUserByUsername(username);
+
+        if (user != null) {
+            // Set user as a request attribute to display in the JSP
+            request.setAttribute("user", user);
+            RequestDispatcher dispatcher = request.getRequestDispatcher("profile.jsp");
+            dispatcher.forward(request, response);
+        } else {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "User not found.");
+        }
+    }
+}
+
+UpdateProfileServlet (Handles Profile Updates)
+The UpdateProfileServlet allows users to update their email or password.
+package com.users.servlet;
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public class UpdateProfileServlet extends HttpServlet {
+
+    // Handle GET request to show the update profile form
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String username = request.getParameter("username");
+
+        // Retrieve user details from the UserService
+        User user = UserService.getUserByUsername(username);
+
+        if (user != null) {
+            // Set user details as request attributes for the form
+            request.setAttribute("user", user);
+            RequestDispatcher dispatcher = request.getRequestDispatcher("updateProfile.jsp");
+            dispatcher.forward(request, response);
+        } else {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "User not found.");
+        }
+    }
+
+    // Handle POST request to update profile
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String username = request.getParameter("username");
+        String newEmail = request.getParameter("email");
+        String newPassword = request.getParameter("password");
+
+        // Get the user object
+        User user = UserService.getUserByUsername(username);
+
+        if (user != null) {
+            // Update user details
+            user.setEmail(newEmail);
+            user.setPassword(newPassword);
+
+            // Update user in the "database"
+            boolean success = UserService.updateUser(user);
+
+            if (success) {
+                // Redirect to the updated profile
+                response.sendRedirect("profile.jsp?username=" + username);
+            } else {
+                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Profile update failed.");
+            }
+        } else {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "User not found.");
+        }
+    }
+}
+
+
+5. JSP Pages
+registrationForm.jsp (User Registration Form)
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Registration</title>
+</head>
+<body>
+    <h2>Register</h2>
+    <form action="user" method="POST">
+        <label>Username:</label><br>
+        <input type="text" name="username" required><br><br>
+
+        <label>Email:</label><br>
+        <input type="email" name="email" required><br><br>
+
+        <label>Password:</label><br>
+        <input type="password" name="password" required><br><br>
+
+        <button type="submit">Register</button>
+    </form>
+
+    <c:if test="${not empty errorMessage}">
+        <p style="color: red;">${errorMessage}</p>
+    </c:if>
+</body>
+</html>
+
+profile.jsp (Display User Profile)
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Profile</title>
+</head>
+<body>
+    <h2>Profile of ${user.username}</h2>
+    <p>Email: ${user.email}</p>
+    <p>Password: ${user.password}</p>
+
+    <form action="updateProfile" method="GET">
+        <input type="hidden" name="username" value="${user.username}">
+        <button type="submit">Update Profile</button>
+    </form>
+</body>
+</html>
+updateProfile.jsp (Update Profile Form)
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Profile</title>
+</head>
+<body>
+    <h2>Update Profile</h2>
+    <form action="updateProfile" method="POST">
+        <input type="hidden" name="username" value="${user.username}">
+
+        <label>New Email:</label><br>
+        <input type="email" name="email" value="${user.email}" required><br><br>
+
+        <label>New Password:</label><br>
+        <input type="password" name="password" value="${user.password}" required><br><br>
+
+        <button type="submit">Update</button>
+    </form>
+</body>
+</html>
+
+6. web.xml Configuration
+Ensure you map the servlets in web.xml:
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
+                             http://java.sun.com/xml/ns/javaee/web-app_3_1.xsd" 
+         version="3.1">
+
+    <servlet>
+        <servlet-name>UserServlet</servlet-name>
+        <servlet-class>com.users.servlet.UserServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>UserServlet</servlet-name>
+        <url-pattern>/user</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ProfileServlet</servlet-name>
+        <servlet-class>com.users.servlet.ProfileServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ProfileServlet</servlet-name>
+        <url-pattern>/profile</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>UpdateProfileServlet</servlet-name>
+        <servlet-class>com.users.servlet.UpdateProfileServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>UpdateProfileServlet</servlet-name>
+        <url-pattern>/updateProfile</url-pattern>
+    </servlet-mapping>
+
+</web-app>
+
+Conclusion
+With the above implementation, you now have a basic user registration system with profile viewing
+and profile updating functionalities. The registration page captures user information and stores 
+it in an in-memory database. The profile page displays the user's data, and the update page allows
+the user to modify their information.
+
+In a real-world application, you would replace the in-memory HashMap with a persistent storage solution (like a relational database).
+
+
+
+
+

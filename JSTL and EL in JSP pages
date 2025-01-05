@@ -1,0 +1,227 @@
+To implement JSTL (JavaServer Pages Standard Tag Library) and EL 
+(Expression Language) in the JSP pages for the Ambulance Booking System,
+we will integrate these technologies to enhance the readability, manageability, 
+and functionality of the code.
+
+JSTL provides several tags to simplify common tasks such as looping through collections,
+conditionally displaying content, and handling data formatting. EL allows us to access
+data from various scopes (e.g., request, session, application) more easily.
+
+Key Concepts to Use:
+1-JSTL Tags:
+<c:if>: Conditional rendering.
+<c:forEach>: Iterating over collections.
+<c:choose>, <c:when>, <c:otherwise>: Conditional blocks for complex logic.
+
+2-Expression Language (EL):
+${}: Accessing data stored in scopes (e.g., request, session, etc.).
+EL expressions can be used to directly access attributes, perform arithmetic operations, and manipulate strings.
+
+JSP Pages Implementing JSTL and EL
+1. Add JSTL Dependency in pom.xml (For Maven Projects)
+To use JSTL tags, ensure that the JSTL library is included in your project.
+If you're using Maven, add the following dependency:
+
+<dependency>
+    <groupId>javax.servlet.jsp.jstl</groupId>
+    <artifactId>javax.servlet.jsp.jstl-api</artifactId>
+    <version>1.2.0</version>
+</dependency>
+Make sure you have the proper version of JSTL and that the servlet API is included in your dependencies.
+2. Modify the bookingConfirmation.jsp Page
+This page will show the confirmation of the booking details submitted by the user.
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page contentType="text/html; charset=UTF-8" language="java" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Booking Confirmation</title>
+</head>
+<body>
+    <h2>Booking Confirmation</h2>
+    <p>Thank you for booking with us!</p>
+
+    <h3>Your Booking Details:</h3>
+    <p><strong>Name:</strong> ${booking.name}</p>
+    <p><strong>Phone:</strong> ${booking.phone}</p>
+    <p><strong>Address:</strong> ${booking.address}</p>
+    <p><strong>Ambulance Type:</strong> ${booking.ambulanceType}</p>
+    <p><strong>Preferred Time:</strong> ${booking.time}</p>
+
+    <br>
+    <a href="viewBooking">View Booking Details</a>
+</body>
+</html>
+
+EL is used to directly access the booking object's properties, like name, phone, etc.
+JSTL isn't strictly required here, but it could be used for conditionals or loops if needed.
+3. Modify the viewBooking.jsp Page
+This page allows the user to view their booking details.
+
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page contentType="text/html; charset=UTF-8" language="java" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View Booking</title>
+</head>
+<body>
+    <h2>Your Booking Details</h2>
+
+    <c:if test="${not empty booking}">
+        <p><strong>Name:</strong> ${booking.name}</p>
+        <p><strong>Phone:</strong> ${booking.phone}</p>
+        <p><strong>Address:</strong> ${booking.address}</p>
+        <p><strong>Ambulance Type:</strong> ${booking.ambulanceType}</p>
+        <p><strong>Preferred Time:</strong> ${booking.time}</p>
+    </c:if>
+
+    <c:if test="${empty booking}">
+        <p>You have no bookings yet. Please <a href="ambulanceBookingForm.jsp">book an ambulance</a>.</p>
+    </c:if>
+
+    <br>
+    <a href="index.jsp">Back to Home</a>
+</body>
+</html>
+JSTL <c:if> is used to check if the booking attribute is available. If the booking attribute is empty, a message prompts the user to make a new booking.
+EL is used to fetch and display the booking data such as name, phone, ambulanceType, and time.
+4. Modify the userProfile.jsp Page
+This page shows user profile details and their past bookings.
+
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page contentType="text/html; charset=UTF-8" language="java" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Profile</title>
+</head>
+<body>
+    <h2>User Profile</h2>
+
+    <c:if test="${not empty user}">
+        <p><strong>Name:</strong> ${user.name}</p>
+        <p><strong>Email:</strong> ${user.email}</p>
+        <p><strong>Phone:</strong> ${user.phone}</p>
+        <p><strong>Address:</strong> ${user.address}</p>
+
+        <h3>Your Ambulance Bookings:</h3>
+        <c:if test="${not empty user.bookings}">
+            <ul>
+                <c:forEach var="booking" items="${user.bookings}">
+                    <li>
+                        <strong>Booking ID:</strong> ${booking.id} -
+                        <strong>Ambulance Type:</strong> ${booking.ambulanceType} -
+                        <strong>Time:</strong> ${booking.time}
+                    </li>
+                </c:forEach>
+            </ul>
+        </c:if>
+
+        <c:if test="${empty user.bookings}">
+            <p>No bookings yet. Please <a href="ambulanceBookingForm.jsp">book an ambulance</a>.</p>
+        </c:if>
+    </c:if>
+
+    <c:if test="${empty user}">
+        <p>You are not logged in. Please <a href="login.jsp">log in</a> to view your profile.</p>
+    </c:if>
+
+    <br>
+    <a href="index.jsp">Back to Home</a>
+</body>
+</html>
+JSTL <c:if> is used to check if the user object exists and if the user has any bookings.
+JSTL <c:forEach> is used to loop through the user's list of bookings and display each one.
+
+5. Modify ambulanceBookingForm.jsp Page
+This page allows the user to enter details for booking an ambulance.
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page contentType="text/html; charset=UTF-8" language="java" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ambulance Booking Form</title>
+</head>
+<body>
+    <h2>Book an Ambulance</h2>
+    <form action="user" method="POST">
+        <label for="name">Your Name:</label><br>
+        <input type="text" id="name" name="name" required><br><br>
+
+        <label for="phone">Phone Number:</label><br>
+        <input type="tel" id="phone" name="phone" required><br><br>
+
+        <label for="address">Address:</label><br>
+        <input type="text" id="address" name="address" required><br><br>
+
+        <label for="ambulanceType">Ambulance Type:</label><br>
+        <select name="ambulanceType" id="ambulanceType">
+            <option value="Basic">Basic</option>
+            <option value="Advanced">Advanced</option>
+        </select><br><br>
+
+        <label for="time">Preferred Time:</label><br>
+        <input type="datetime-local" id="time" name="time" required><br><br>
+
+        <button type="submit">Book Ambulance</button>
+    </form>
+</body>
+</html>
+
+JSTL isn't directly necessary here, but it can be used if you need to add any dynamic content to the form (e.g., pre-selecting a value, displaying error messages, etc.).
+
+6. Web Configuration (web.xml)
+Make sure that the servlets are properly mapped in the web.xml file:
+
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
+                             http://java.sun.com/xml/ns/javaee/web-app_3_1.xsd" 
+         version="3.1">
+
+    <!-- Servlet mappings -->
+    <servlet>
+        <servlet-name>AmbulanceBookingServlet</servlet-name>
+        <servlet-class>com.servlet.AmbulanceBookingServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AmbulanceBookingServlet</servlet-name>
+        <url-pattern>/user</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>UserProfileServlet</servlet-name>
+        <servlet-class>com.servlet.UserProfileServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>UserProfileServlet</servlet-name>
+        <url-pattern>/userProfile</url-pattern>
+    </servlet-mapping>
+
+</web-app>
+
+Conclusion
+In this setup:
+
+We used JSTL to handle conditional rendering (<c:if>, <c:choose>, etc.) and iteration (<c:forEach>) to display user booking information.
+EL is used to access and display the data in the JSP pages. The data is retrieved from request attributes, session objects, or any Java
+beans set in the Servlet.
+This approach improves the readability and manageability of the code and enhances the user experience by allowing dynamic content rendering in the Ambulance Booking System.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

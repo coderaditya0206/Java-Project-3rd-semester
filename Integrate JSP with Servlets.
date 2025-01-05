@@ -1,0 +1,501 @@
+Integrating JSP with Servlets for an Ambulance Booking System involves creating the necessary
+Servlets for handling requests and managing the logic behind ambulance bookings and using JSP
+pages to display the data and handle user interactions.
+
+We will create a simple example where:
+
+JSP pages will present the user interface (e.g., forms for booking an ambulance, viewing booking details).
+Servlets will handle business logic (e.g., processing the booking, storing the booking data, and interacting with the backend).
+1. Directory Structure
+
+AmbulanceBookingSystem
+│
+├── src/
+│   ├── com/
+│       ├── servlet/
+│           ├── AmbulanceBookingServlet.java
+│           ├── ViewBookingServlet.java
+│
+├── WebContent/
+│   ├── WEB-INF/
+│   │   ├── web.xml
+│   ├── index.jsp
+│   ├── ambulanceBookingForm.jsp
+│   ├── bookingConfirmation.jsp
+│   └── viewBooking.jsp
+└── lib/
+
+
+2. User Model (Booking.java)
+Create a Booking class to represent a booking request.
+
+package com.servlet;
+
+public class Booking {
+    private String name;
+    private String phone;
+    private String address;
+    private String ambulanceType;
+    private String time;
+
+    public Booking(String name, String phone, String address, String ambulanceType, String time) {
+        this.name = name;
+        this.phone = phone;
+        this.address = address;
+        this.ambulanceType = ambulanceType;
+        this.time = time;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public String getAmbulanceType() {
+        return ambulanceType;
+    }
+
+    public String getTime() {
+        return time;
+    }
+}
+
+
+3. AmbulanceBookingServlet.java (Handle Booking Logic)
+This servlet will handle the ambulance booking request. 
+It will receive the data from the form, create a booking object, 
+and forward the user to a confirmation page.
+
+package com.servlet;
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public class AmbulanceBookingServlet extends HttpServlet {
+
+    // Handle GET request (show booking form)
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Forward to the ambulance booking form (JSP)
+        RequestDispatcher dispatcher = request.getRequestDispatcher("ambulanceBookingForm.jsp");
+        dispatcher.forward(request, response);
+    }
+
+    // Handle POST request (process booking form)
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Retrieve form data from the user
+        String name = request.getParameter("name");
+        String phone = request.getParameter("phone");
+        String address = request.getParameter("address");
+        String ambulanceType = request.getParameter("ambulanceType");
+        String time = request.getParameter("time");
+
+        // Create a Booking object
+        Booking booking = new Booking(name, phone, address, ambulanceType, time);
+
+        // Add the booking to the request object to display in the confirmation JSP
+        request.setAttribute("booking", booking);
+
+        // Forward to the booking confirmation page
+        RequestDispatcher dispatcher = request.getRequestDispatcher("bookingConfirmation.jsp");
+        dispatcher.forward(request, response);
+    }
+}
+
+
+4. ViewBookingServlet.java (View Booking Details)
+This servlet will handle displaying the booking information
+based on the booking ID or user information.
+
+package com.servlet;
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public class ViewBookingServlet extends HttpServlet {
+
+    // Handle GET request to view booking details
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Get booking information (for this example, we assume the booking is saved in the session)
+        Booking booking = (Booking) request.getSession().getAttribute("booking");
+
+        if (booking != null) {
+            // If booking exists, forward to the viewBooking.jsp
+            request.setAttribute("booking", booking);
+            RequestDispatcher dispatcher = request.getRequestDispatcher("viewBooking.jsp");
+            dispatcher.forward(request, response);
+        } else {
+            response.sendRedirect("index.jsp"); // If no booking found, redirect to home page
+        }
+    }
+}
+
+5. JSP Pages
+index.jsp (Home Page with Link to Booking Form)
+The home page with a link to start the booking process.
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ambulance Booking System</title>
+</head>
+<body>
+    <h2>Welcome to the Ambulance Booking System</h2>
+    <a href="ambulanceBookingForm.jsp">Book an Ambulance</a> <!-- Link to the ambulance booking form -->
+</body>
+</html>
+
+
+ambulanceBookingForm.jsp (Booking Form)
+The form where users can enter their booking details.
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ambulance Booking Form</title>
+</head>
+<body>
+    <h2>Book an Ambulance</h2>
+    <form action="user" method="POST">
+        <label for="name">Your Name:</label><br>
+        <input type="text" id="name" name="name" required><br><br>
+
+        <label for="phone">Phone Number:</label><br>
+        <input type="tel" id="phone" name="phone" required><br><br>
+
+        <label for="address">Address:</label><br>
+        <input type="text" id="address" name="address" required><br><br>
+
+        <label for="ambulanceType">Ambulance Type:</label><br>
+        <select name="ambulanceType" id="ambulanceType">
+            <option value="Basic">Basic</option>
+            <option value="Advanced">Advanced</option>
+        </select><br><br>
+
+        <label for="time">Preferred Time:</label><br>
+        <input type="datetime-local" id="time" name="time" required><br><br>
+
+        <button type="submit">Book Ambulance</button>
+    </form>
+</body>
+</html>
+
+
+bookingConfirmation.jsp (Booking Confirmation)
+This page will display the booking confirmation details after
+the user submits the form.
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Booking Confirmation</title>
+</head>
+<body>
+    <h2>Booking Confirmation</h2>
+    <p>Thank you for booking with us!</p>
+
+    <h3>Booking Details:</h3>
+    <p><strong>Name:</strong> ${booking.name}</p>
+    <p><strong>Phone:</strong> ${booking.phone}</p>
+    <p><strong>Address:</strong> ${booking.address}</p>
+    <p><strong>Ambulance Type:</strong> ${booking.ambulanceType}</p>
+    <p><strong>Preferred Time:</strong> ${booking.time}</p>
+
+    <br>
+    <a href="viewBooking.jsp">View Booking Details</a>
+</body>
+</html>
+
+
+Integrating JSP with Servlets for an Ambulance Booking System involves creating the necessary Servlets for handling requests and managing the logic behind ambulance bookings and using JSP pages to display the data and handle user interactions.
+
+We will create a simple example where:
+
+JSP pages will present the user interface (e.g., forms for booking an ambulance, viewing booking details).
+Servlets will handle business logic (e.g., processing the booking, storing the booking data, and interacting with the backend).
+1. Directory Structure
+css
+Copy code
+AmbulanceBookingSystem
+│
+├── src/
+│   ├── com/
+│       ├── servlet/
+│           ├── AmbulanceBookingServlet.java
+│           ├── ViewBookingServlet.java
+│
+├── WebContent/
+│   ├── WEB-INF/
+│   │   ├── web.xml
+│   ├── index.jsp
+│   ├── ambulanceBookingForm.jsp
+│   ├── bookingConfirmation.jsp
+│   └── viewBooking.jsp
+└── lib/
+2. User Model (Booking.java)
+Create a Booking class to represent a booking request.
+
+java
+Copy code
+package com.servlet;
+
+public class Booking {
+    private String name;
+    private String phone;
+    private String address;
+    private String ambulanceType;
+    private String time;
+
+    public Booking(String name, String phone, String address, String ambulanceType, String time) {
+        this.name = name;
+        this.phone = phone;
+        this.address = address;
+        this.ambulanceType = ambulanceType;
+        this.time = time;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public String getAmbulanceType() {
+        return ambulanceType;
+    }
+
+    public String getTime() {
+        return time;
+    }
+}
+3. AmbulanceBookingServlet.java (Handle Booking Logic)
+This servlet will handle the ambulance booking request. It will receive the data from the form, create a booking object, and forward the user to a confirmation page.
+
+java
+Copy code
+package com.servlet;
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public class AmbulanceBookingServlet extends HttpServlet {
+
+    // Handle GET request (show booking form)
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Forward to the ambulance booking form (JSP)
+        RequestDispatcher dispatcher = request.getRequestDispatcher("ambulanceBookingForm.jsp");
+        dispatcher.forward(request, response);
+    }
+
+    // Handle POST request (process booking form)
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Retrieve form data from the user
+        String name = request.getParameter("name");
+        String phone = request.getParameter("phone");
+        String address = request.getParameter("address");
+        String ambulanceType = request.getParameter("ambulanceType");
+        String time = request.getParameter("time");
+
+        // Create a Booking object
+        Booking booking = new Booking(name, phone, address, ambulanceType, time);
+
+        // Add the booking to the request object to display in the confirmation JSP
+        request.setAttribute("booking", booking);
+
+        // Forward to the booking confirmation page
+        RequestDispatcher dispatcher = request.getRequestDispatcher("bookingConfirmation.jsp");
+        dispatcher.forward(request, response);
+    }
+}
+4. ViewBookingServlet.java (View Booking Details)
+This servlet will handle displaying the booking information based on the booking ID or user information.
+
+java
+Copy code
+package com.servlet;
+
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+public class ViewBookingServlet extends HttpServlet {
+
+    // Handle GET request to view booking details
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Get booking information (for this example, we assume the booking is saved in the session)
+        Booking booking = (Booking) request.getSession().getAttribute("booking");
+
+        if (booking != null) {
+            // If booking exists, forward to the viewBooking.jsp
+            request.setAttribute("booking", booking);
+            RequestDispatcher dispatcher = request.getRequestDispatcher("viewBooking.jsp");
+            dispatcher.forward(request, response);
+        } else {
+            response.sendRedirect("index.jsp"); // If no booking found, redirect to home page
+        }
+    }
+}
+5. JSP Pages
+index.jsp (Home Page with Link to Booking Form)
+The home page with a link to start the booking process.
+
+jsp
+Copy code
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ambulance Booking System</title>
+</head>
+<body>
+    <h2>Welcome to the Ambulance Booking System</h2>
+    <a href="ambulanceBookingForm.jsp">Book an Ambulance</a> <!-- Link to the ambulance booking form -->
+</body>
+</html>
+ambulanceBookingForm.jsp (Booking Form)
+The form where users can enter their booking details.
+
+jsp
+Copy code
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ambulance Booking Form</title>
+</head>
+<body>
+    <h2>Book an Ambulance</h2>
+    <form action="user" method="POST">
+        <label for="name">Your Name:</label><br>
+        <input type="text" id="name" name="name" required><br><br>
+
+        <label for="phone">Phone Number:</label><br>
+        <input type="tel" id="phone" name="phone" required><br><br>
+
+        <label for="address">Address:</label><br>
+        <input type="text" id="address" name="address" required><br><br>
+
+        <label for="ambulanceType">Ambulance Type:</label><br>
+        <select name="ambulanceType" id="ambulanceType">
+            <option value="Basic">Basic</option>
+            <option value="Advanced">Advanced</option>
+        </select><br><br>
+
+        <label for="time">Preferred Time:</label><br>
+        <input type="datetime-local" id="time" name="time" required><br><br>
+
+        <button type="submit">Book Ambulance</button>
+    </form>
+</body>
+</html>
+bookingConfirmation.jsp (Booking Confirmation)
+This page will display the booking confirmation details after the user submits the form.
+
+jsp
+Copy code
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Booking Confirmation</title>
+</head>
+<body>
+    <h2>Booking Confirmation</h2>
+    <p>Thank you for booking with us!</p>
+
+    <h3>Booking Details:</h3>
+    <p><strong>Name:</strong> ${booking.name}</p>
+    <p><strong>Phone:</strong> ${booking.phone}</p>
+    <p><strong>Address:</strong> ${booking.address}</p>
+    <p><strong>Ambulance Type:</strong> ${booking.ambulanceType}</p>
+    <p><strong>Preferred Time:</strong> ${booking.time}</p>
+
+    <br>
+    <a href="viewBooking.jsp">View Booking Details</a>
+</body>
+</html>
+viewBooking.jsp (View Booking Details)
+This page will allow the user to view their booking details.
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View Booking</title>
+</head>
+<body>
+    <h2>Your Booking Details</h2>
+
+    <p><strong>Name:</strong> ${booking.name}</p>
+    <p><strong>Phone:</strong> ${booking.phone}</p>
+    <p><strong>Address:</strong> ${booking.address}</p>
+    <p><strong>Ambulance Type:</strong> ${booking.ambulanceType}</p>
+    <p><strong>Preferred Time:</strong> ${booking.time}</p>
+
+    <br>
+    <a href="index.jsp">Back to Home</a>
+</body>
+</html>
+
+6. web.xml (Servlet Mapping)
+Map the servlets to URL patterns in web.xml.
+
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
+                             http://java.sun.com/xml/ns/javaee/web-app_3_1.xsd" 
+         version="3.1">
+
+    <!-- AmbulanceBookingServlet Mapping -->
+    <servlet>
+        <servlet-name>AmbulanceBookingServlet</servlet-name>
+        <servlet-class>com.servlet.AmbulanceBookingServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AmbulanceBookingServlet</servlet-name>
+        <url-pattern>/user</url-pattern>
+    </servlet-mapping>
+
+    <!-- ViewBookingServlet Mapping -->
+    <servlet>
+        <servlet-name>ViewBookingServlet</servlet-name>
+        <servlet-class>com.servlet.ViewBookingServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ViewBookingServlet</servlet-name>
+        <url-pattern>/viewBooking</url-pattern>
+    </servlet-mapping>
+
+</web-app>
+
+7. Running the System
+Compile the code and place it in the appropriate directory (usually WEB-INF/classes).
+Deploy the application to a servlet container (e.g., Apache Tomcat).
+Test:
+Visit index.jsp and click on "Book an Ambulance".
+Complete the form and submit. You should be redirected to bookingConfirmation.jsp, where the booking details will be displayed.
+You can also view the booking details by clicking "View Booking Details".
+
+Conclusion
+This example demonstrates how to integrate JSP with Servlets in an Ambulance Booking System. 
+The Servlets handle the logic of processing the booking, while the JSPs display the information 
+to the user. This structure ensures a clear separation of concerns between business logic and 
+presentation, making the application easier to maintain and extend.
+
+
+
+
+
+
+
+
